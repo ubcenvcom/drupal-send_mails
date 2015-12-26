@@ -1,10 +1,9 @@
 <?php
 
 /**
- *Implements hook_form for Mail sender form
+ * Implements hook_form for Mail sender form.
  */
-function send_mails_form(){
-  global $user;
+function send_mails_form() {
   
   $form = array('#attributes' => array('enctype' => 'multipart/form-data'));
   
@@ -41,7 +40,7 @@ function send_mails_form(){
     '#size' => 60,
     '#maxlength' => 1000,
     '#title' => t('To Address'),
-    '#description' => "Enter the senders mail id seperated by comma(,). Example: example@example.com,test@test.com,..",
+    '#description' => t("Enter the senders mail id separated by comma(,). Example: example@example.com,test@test.com,.."),
     '#states' => array(
       'invisible' => array(
         ':input[name="role_based"]' => array('checked' => TRUE),
@@ -57,7 +56,7 @@ function send_mails_form(){
     '#maxlength' => 255,
     '#required' => TRUE,
     '#title' => t('Mail Subject'),
-    '#description' => "Enter the Subject for the mail",
+    '#description' => t("Enter the Subject for the mail"),
   );
   $form['body'] = array(
     '#type' => 'text_format',
@@ -65,7 +64,7 @@ function send_mails_form(){
     '#required' => TRUE,
     '#rows' => 20,
     '#cols' => 60,
-    '#description' => "Enter the Body content for mail",
+    '#description' => t("Enter the Body content for mail"),
     '#attributes' => array('class' => array('text-full')),
   );
   $form['files'] = array(
@@ -74,7 +73,7 @@ function send_mails_form(){
     '#name' => 'files[]',
     '#attributes' => array('multiple' => 'multiple'),
     '#upload_location' => 'public://sen_mails/',
-    '#description' => "Upload upto 5mb files.",
+    '#description' => t("Upload up to 5mb files."),
     '#upload_validators' => array(
         'file_validate_extensions' => array('zip tar tgz taz z gz rar gif png jpg jpeg doc xls ppt sxw sxc sxi sdw sdc sdd pdf'),
         'file_validate_size' => array(5000000),
@@ -88,16 +87,16 @@ function send_mails_form(){
 }
 
 /**
- *implements hook_form_validate()
+ * implements hook_form_validate().
  */
-function send_mails_form_validate(&$form, &$form_state){
+function send_mails_form_validate(&$form, &$form_state) {
    // Role based To address
   if($form_state['values']['role_based']){
     $mailid_array = array();
     module_load_include('inc', 'send_mails', 'send_mails.query');
     $roles = $form_state['values']['user_roles'];
     $mailids = send_mails_query('mailid_from_role', $roles);
-    foreach($mailids as $key => $value){
+    foreach($mailids as $value){
       $mailid_array[] = $value->mail;
     }
     $form_state['values']['to_id'] = implode(",", $mailid_array);
@@ -114,7 +113,7 @@ function send_mails_form_validate(&$form, &$form_state){
 /**
  *implements hook_form_submit()
  */
-function send_mails_form_submit(&$form, &$form_state){
+function send_mails_form_submit(&$form, &$form_state) {
   global $user;
   //From Address from user login
   if($user->uid){
@@ -145,6 +144,6 @@ function send_mails_form_submit(&$form, &$form_state){
     $message = $system->format($message);
     $message['result'] = $system->mail($message);
   }
-  drupal_set_message('Your mail sent successfully!');
+  drupal_set_message(t('Your mail sent successfully!'));
 }
 

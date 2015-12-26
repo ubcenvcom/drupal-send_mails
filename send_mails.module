@@ -1,7 +1,7 @@
 <?php
 
 /**
- *implements hook_menu()
+ * implements hook_menu().
  */
 function send_mails_menu(){
   $items = array();
@@ -39,8 +39,8 @@ function send_mails_permission() {
 }
 
 /**
-* Implements hook_block_info().
-*/
+ * Implements hook_block_info().
+ */
 function send_mails_block_info() {
   $blocks = array();
   $blocks['send_mails'] = array(
@@ -66,9 +66,9 @@ function send_mails_block_view($delta = '') {
 }
 
 /**
- *implements hook_mail_alter()
+ * implements hook_mail_alter().
  */
-function send_mails_mail_alter(&$message){
+function send_mails_mail_alter(&$message) {
   if(($message['module'] == 'send_mails') && ($message['key'] = 'send_mails_send')){
   $message['headers'] = array(
       'MIME-Version' => '1.0',

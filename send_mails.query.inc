@@ -1,12 +1,13 @@
 <?php
 
 /**
- *Custom function to process database operations
- *@param1 $type : type of the query
- *@return array of return value
+ * Custom function to process database operations.
+ * @param1 $type : type of the query
+ * 
+ * @return array of return value
  */
-function send_mails_query($type, $condition){
-  switch($type){
+function send_mails_query($type, $condition) {
+  switch($type) {
     case 'mailid_from_role' :
       $query = db_select('users', 'u')
                 ->fields('u', array('mail'));
