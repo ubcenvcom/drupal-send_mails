@@ -1,0 +1,81 @@
+<?php
+
+/**
+ *implements hook_menu()
+ */
+function send_mails_menu(){
+  $items = array();
+  $items['send-mails/send'] = array(
+    'title' => 'Easy Mail Service',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('send_mails_form'),
+    'access arguments' => array('send_mails'),
+    'file' => 'send_mails.form.inc',
+  );
+  $items['send-mails/mailids'] = array(
+    'title' => 'Send Mails Autocomplete',
+    'page callback' => 'send_mails_mailids_autocomplete',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'send_mails.query.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function send_mails_permission() {
+  return array(
+    'send_mails' => array(
+      'title' => t('Access Send Mails Service'),
+      'description' => t('User has permission for access the Send mails forms'),
+    ),
+    'advanced_send_mails' => array(
+      'title' => t('Access Advanced Send Mails Service'),
+      'description' => t('Advanced send mails options like, Role based sending.'),
+    ),
+  );
+}
+
+/**
+* Implements hook_block_info().
+*/
+function send_mails_block_info() {
+  $blocks = array();
+  $blocks['send_mails'] = array(
+    'info' => t('Send Mails Block'),
+    'description' => t('Enable this block for Send Mails create form.'),
+  );
+  return $blocks;
+}
+
+/**
+* Implements hook_block_view().
+*/
+function send_mails_block_view($delta = '') {
+  module_load_include('inc', 'send_mails', 'send_mails.form');
+  $block = array();  
+  switch ($delta) {
+    case 'send_mails':
+      $block['subject'] = '';
+      $block['content'] = drupal_get_form('send_mails_form');
+      break;
+  }
+ return $block;
+}
+
+/**
+ *implements hook_mail_alter()
+ */
+function send_mails_mail_alter(&$message){
+  if(($message['module'] == 'send_mails') && ($message['key'] = 'send_mails_send')){
+  $message['headers'] = array(
+      'MIME-Version' => '1.0',
+      'Content-Type' => 'text/html; charset=UTF-8; format=flowed',
+      'Content-Transfer-Encoding' => '8Bit',
+      'X-Mailer' => 'Drupal',
+      'Return-Path' => $message['from'],
+    );
+  }
+}
