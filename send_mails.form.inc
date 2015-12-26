@@ -102,7 +102,7 @@ function send_mails_form_validate(&$form, &$form_state) {
     $form_state['values']['to_id'] = implode(",", $mailid_array);
   }
   $email = explode(',', $form_state['values']['to_id']);
-  foreach($email as $key => $value){
+  foreach($email as $value){
     if(!filter_var(trim($value), FILTER_VALIDATE_EMAIL)){
       form_set_error('to_id', t('Invalid "To Address" please enter valid e-mail ids'));
     }
