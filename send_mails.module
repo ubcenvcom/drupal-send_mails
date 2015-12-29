@@ -1,10 +1,16 @@
 <?php
+/**
+ * @file
+ * Define permissions, Menus, Block and Mail alters.
+ */
 
 /**
  * implements hook_menu().
  */
 function send_mails_menu(){
+  
   $items = array();
+  
   $items['send-mails/send'] = array(
     'title' => 'Easy Mail Service',
     'page callback' => 'drupal_get_form',
@@ -12,6 +18,7 @@ function send_mails_menu(){
     'access arguments' => array('send_mails'),
     'file' => 'send_mails.form.inc',
   );
+  
   $items['send-mails/mailids'] = array(
     'title' => 'Send Mails Autocomplete',
     'page callback' => 'send_mails_mailids_autocomplete',
@@ -19,6 +26,7 @@ function send_mails_menu(){
     'type' => MENU_CALLBACK,
     'file' => 'send_mails.query.inc',
   );
+  
   return $items;
 }
 
@@ -42,11 +50,14 @@ function send_mails_permission() {
  * Implements hook_block_info().
  */
 function send_mails_block_info() {
+  
   $blocks = array();
+  
   $blocks['send_mails'] = array(
     'info' => t('Send Mails Block'),
     'description' => t('Enable this block for Send Mails create form.'),
   );
+  
   return $blocks;
 }
 
@@ -55,13 +66,16 @@ function send_mails_block_info() {
 */
 function send_mails_block_view($delta = '') {
   module_load_include('inc', 'send_mails', 'send_mails.form');
+  
   $block = array();  
+  
   switch ($delta) {
     case 'send_mails':
       $block['subject'] = '';
       $block['content'] = drupal_get_form('send_mails_form');
       break;
   }
+ 
  return $block;
 }
 

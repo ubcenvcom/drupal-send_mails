@@ -1,16 +1,21 @@
 <?php
 
 /**
+ * @file
+ * Mail compose forms.
+ */
+
+/**
  * Implements hook_form for Mail sender form.
  */
 function send_mails_form() {
   
   $form = array('#attributes' => array('enctype' => 'multipart/form-data'));
   
-  //Exclude anonymous user for rolebased
+  // Exclude anonymous user for rolebased.
   $user_roles = array_diff(user_roles(), array('anonymous user'));
   
-  //Advanced send option fields
+  // Advanced send option fields.
   if (user_access('advanced_send_mails')) {
     $form['advanced_send_option'] = array(
       '#type' => 'fieldset',
@@ -18,10 +23,12 @@ function send_mails_form() {
       '#collapsible' => TRUE, 
       '#collapsed' => TRUE,  
     );
+    
     $form['advanced_send_option']['role_based'] = array(
       '#type' => 'checkbox',
       '#title' => t('Role based recievers'),
     );
+    
     $form['advanced_send_option']['user_roles'] = array(
       '#type' => 'radios',
       '#options' => $user_roles,
@@ -32,6 +39,7 @@ function send_mails_form() {
         ),
       ),
     );
+    
   }
   
   $form['to_id'] = array(
@@ -50,6 +58,7 @@ function send_mails_form() {
       ),
     ),
   );
+  
   $form['subject'] = array(
     '#type' => 'textfield',
     '#size' => 60,
@@ -58,6 +67,7 @@ function send_mails_form() {
     '#title' => t('Mail Subject'),
     '#description' => t("Enter the Subject for the mail"),
   );
+  
   $form['body'] = array(
     '#type' => 'text_format',
     '#title' => t('Mail Body'),
@@ -67,6 +77,7 @@ function send_mails_form() {
     '#description' => t("Enter the Body content for mail"),
     '#attributes' => array('class' => array('text-full')),
   );
+  
   $form['files'] = array(
     '#title' => t('Attachment'),
     '#type' => 'managed_file',
@@ -79,34 +90,39 @@ function send_mails_form() {
         'file_validate_size' => array(5000000),
     ),
   );
+  
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Send')
   );
+  
   return $form;
 }
 
 /**
  * implements hook_form_validate().
  */
+
 function send_mails_form_validate(&$form, &$form_state) {
-   // Role based To address
-  if($form_state['values']['role_based']){
+   // Role based To address.
+  if ($form_state['values']['role_based']) {
     $mailid_array = array();
     module_load_include('inc', 'send_mails', 'send_mails.query');
     $roles = $form_state['values']['user_roles'];
     $mailids = send_mails_query('mailid_from_role', $roles);
-    foreach($mailids as $value){
+    foreach ($mailids as $value) {
       $mailid_array[] = $value->mail;
     }
     $form_state['values']['to_id'] = implode(",", $mailid_array);
   }
   $email = explode(',', $form_state['values']['to_id']);
-  foreach($email as $value){
-    if(!filter_var(trim($value), FILTER_VALIDATE_EMAIL)){
+  
+  foreach ($email as $value) {
+    if (!filter_var(trim($value), FILTER_VALIDATE_EMAIL)) {
       form_set_error('to_id', t('Invalid "To Address" please enter valid e-mail ids'));
     }
   }
+  
   return;
 }
 
@@ -116,10 +132,10 @@ function send_mails_form_validate(&$form, &$form_state) {
 function send_mails_form_submit(&$form, &$form_state) {
   global $user;
   //From Address from user login
-  if($user->uid){
+  if ($user->uid) {
     $from = $user->mail;  
   }
-  else{
+  else {
     $from = variable_get('site_mail', '');
   }
   $module = 'send_mails';
@@ -130,7 +146,7 @@ function send_mails_form_submit(&$form, &$form_state) {
   $send = FALSE;
   $key = 'send_mails_send';
   $email = explode(',', $form_state['values']['to_id']);
-  foreach($email as $mails){
+  foreach ($email as $mails) {
     $message = drupal_mail($module, $key, trim($mails), $language, $params, $from, $send);
     $message['subject'] =  $form_state['values']['subject'];
     $message['body'] = array($report);

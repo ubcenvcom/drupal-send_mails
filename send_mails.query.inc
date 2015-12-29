@@ -1,10 +1,14 @@
 <?php
 
 /**
+ * @file
+ * Database querys and Autocomplete json handlers.
+ */
+
+/**
  * Custom function to process database operations.
- * @param1 $type : type of the query
- * 
- * @return array of return value
+ * @param1 $type : type of the query.
+ * @return array of return value.
  */
 function send_mails_query($type, $condition) {
   switch($type) {
@@ -13,7 +17,7 @@ function send_mails_query($type, $condition) {
                 ->fields('u', array('mail'));
       $query ->condition('u.mail', '', '<>'); 
       //If Authenticated user
-      if($condition != 2){
+      if ($condition != 2) {
         $query ->join('users_roles', 'ur', 'ur.uid = u.uid');
         $query ->condition('ur.rid', $condition); 
       }
@@ -26,7 +30,8 @@ function send_mails_query($type, $condition) {
 
 
 /**
- *Custom Autocomplete field 
+ * Custom Autocomplete field.
+ * @param1 String to match.
  */
 function send_mails_mailids_autocomplete($string) {
   $matches = array();
@@ -34,7 +39,7 @@ function send_mails_mailids_autocomplete($string) {
   if ($string) {
     $array = drupal_explode_tags($string);
 
-    // Fetch last string from user entered string
+    // Fetch last string from user entered string.
     $last_string = trim(array_pop($array));
 
     $result = db_select('users')
@@ -44,16 +49,15 @@ function send_mails_mailids_autocomplete($string) {
     ->range(0, 10)
     ->execute();
 
-    //adding previous values along with last name
+    // adding previous values along with last name.
     $prefix = count($array) ? implode(', ', $array) .', ' : '';
     // add matches to $matches
     foreach ($result as $row) {
-      if(!in_array($row->mail, $array)){
+      if (!in_array($row->mail, $array)) {
         $matches[$prefix.$row->mail] = check_plain($row->mail);
       }
     }
   }
-  // return for JS
+  // return for JS.
   drupal_json_output($matches);
 }
-
