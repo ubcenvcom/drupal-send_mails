@@ -100,7 +100,7 @@ function send_mails_form() {
 }
 
 /**
- * implements hook_form_validate().
+ * Implements hook_form_validate().
  */
 
 function send_mails_form_validate(&$form, &$form_state) {
@@ -127,11 +127,11 @@ function send_mails_form_validate(&$form, &$form_state) {
 }
 
 /**
- *implements hook_form_submit()
+ * Implements hook_form_submit()
  */
 function send_mails_form_submit(&$form, &$form_state) {
   global $user;
-  //From Address from user login
+  // From Address from user login.
   if ($user->uid) {
     $from = $user->mail;  
   }
@@ -162,4 +162,3 @@ function send_mails_form_submit(&$form, &$form_state) {
   }
   drupal_set_message(t('Your mail sent successfully!'));
 }
-
