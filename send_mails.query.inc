@@ -10,19 +10,18 @@
  */
 function send_mails_query($type, $condition) {
   switch ($type) {
-    case 'mailid_from_role' : 
+    case 'mailid_from_role':
       $query = db_select('users', 'u')
                 ->fields('u', array('mail'));
       $query->condition('u.mail', '', '<>');
       // If Authenticated user.
       if ($condition != 2) {
         $query->join('users_roles', 'ur', 'ur.uid = u.uid');
-        $query->condition('ur.rid', $condition); 
+        $query->condition('ur.rid', $condition);
       }
       $result = $query->execute()->fetchAll();
       break;
-    
-    default: 
+    default:
   }
   return $result;
 }
@@ -37,17 +36,17 @@ function send_mails_mailids_autocomplete($string) {
     // Fetch last string from user entered string.
     $last_string = trim(array_pop($array));
     $result = db_select('users')
-    ->fields('users', array('mail'))
-    ->condition('mail', '%' . db_like($last_string) . '%', 'LIKE')
-    ->range(0, 10)
-    ->execute();
+      ->fields('users', array('mail'))
+      ->condition('mail', '%' . db_like($last_string) . '%', 'LIKE')
+      ->range(0, 10)
+      ->execute();
 
     // Adding previous values along with last name.
-    $prefix = count($array) ? implode(', ', $array) .', ' : '';
+    $prefix = count($array) ? implode(', ', $array) . ', ' : '';
     // Add matches to $matches.
     foreach ($result as $row) {
       if (!in_array($row->mail, $array)) {
-        $matches[$prefix.$row->mail] = check_plain($row->mail);
+        $matches[$prefix . $row->mail] = check_plain($row->mail);
       }
     }
   }

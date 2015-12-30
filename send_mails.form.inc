@@ -6,15 +6,12 @@
  */
 
 /**
- * Implements hook_form for Mail sender form.
+ * Implements hook_form().
  */
 function send_mails_form() {
-  
   $form = array('#attributes' => array('enctype' => 'multipart/form-data'));
-  
   // Exclude anonymous user for rolebased.
   $user_roles = array_diff(user_roles(), array('anonymous user'));
-  
   // Advanced send option fields.
   if (user_access('advanced_send_mails')) {
     $form['advanced_send_option'] = array(
@@ -23,25 +20,21 @@ function send_mails_form() {
       '#collapsible' => TRUE, 
       '#collapsed' => TRUE,  
     );
-    
     $form['advanced_send_option']['role_based'] = array(
       '#type' => 'checkbox',
       '#title' => t('Role based recievers'),
     );
-    
     $form['advanced_send_option']['user_roles'] = array(
       '#type' => 'radios',
       '#options' => $user_roles,
       '#title' => t('Select required role'),
       '#states' => array(
         'visible' => array(
-          ':input[name="role_based"]' => array('checked' => TRUE),
+          ':input[name="role_based"]' => array('checked' => TRUE, ),
         ),
       ),
     );
-    
   }
-  
   $form['to_id'] = array(
     '#type' => 'textfield',
     '#autocomplete_path' => 'send-mails/mailids',
@@ -51,14 +44,13 @@ function send_mails_form() {
     '#description' => t("Enter the senders mail id separated by comma(,). Example: example@example.com,test@test.com,.."),
     '#states' => array(
       'invisible' => array(
-        ':input[name="role_based"]' => array('checked' => TRUE),
+        ':input[name="role_based"]' => array('checked' => TRUE, ),
       ),
       'required' => array(
-        ':input[name="role_based"]' => array('checked' => FALSE),
+        ':input[name="role_based"]' => array('checked' => FALSE, ),
       ),
     ),
   );
-  
   $form['subject'] = array(
     '#type' => 'textfield',
     '#size' => 60,
@@ -67,7 +59,6 @@ function send_mails_form() {
     '#title' => t('Mail Subject'),
     '#description' => t("Enter the Subject for the mail"),
   );
-  
   $form['body'] = array(
     '#type' => 'text_format',
     '#title' => t('Mail Body'),
@@ -75,27 +66,24 @@ function send_mails_form() {
     '#rows' => 20,
     '#cols' => 60,
     '#description' => t("Enter the Body content for mail"),
-    '#attributes' => array('class' => array('text-full')),
+    '#attributes' => array('class' => array('text-full'), ),
   );
-  
   $form['files'] = array(
     '#title' => t('Attachment'),
     '#type' => 'managed_file',
     '#name' => 'files[]',
     '#attributes' => array('multiple' => 'multiple'),
-    '#upload_location' => 'public://sen_mails/',
-    '#description' => t("Upload up to 5mb files."),
+      '#upload_location' => 'public://sen_mails/',
+      '#description' => t("Upload up to 5mb files."),
     '#upload_validators' => array(
-        'file_validate_extensions' => array('zip tar tgz taz z gz rar gif png jpg jpeg doc xls ppt sxw sxc sxi sdw sdc sdd pdf'),
-        'file_validate_size' => array(5000000),
+      'file_validate_extensions' => array('zip tar tgz taz z gz rar gif png jpg jpeg doc xls ppt sxw sxc sxi sdw sdc sdd pdf'),
+      'file_validate_size' => array(5000000),
     ),
   );
-  
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Send')
   );
-  
   return $form;
 }
 
@@ -116,18 +104,16 @@ function send_mails_form_validate(&$form, &$form_state) {
     $form_state['values']['to_id'] = implode(",", $mailid_array);
   }
   $email = explode(',', $form_state['values']['to_id']);
-  
   foreach ($email as $value) {
     if (!filter_var(trim($value), FILTER_VALIDATE_EMAIL)) {
       form_set_error('to_id', t('Invalid "To Address" please enter valid e-mail ids'));
     }
   }
-  
   return;
 }
 
 /**
- * Implements hook_form_submit()
+ * Implements hook_form_submit().
  */
 function send_mails_form_submit(&$form, &$form_state) {
   global $user;
@@ -154,7 +140,7 @@ function send_mails_form_submit(&$form, &$form_state) {
       'filepath' => $file->uri,
       'filename' => $file->filename,
       'filemime' => $file->filemime,
-      'list' => TRUE
+      'list' => TRUE,
     );
     $system = drupal_mail_system($module, $key);
     $message = $system->format($message);
