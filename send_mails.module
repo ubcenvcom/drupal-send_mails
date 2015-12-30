@@ -84,7 +84,7 @@ function send_mails_block_view($delta = '') {
  */
 function send_mails_mail_alter(&$message) {
   if(($message['module'] == 'send_mails') && ($message['key'] = 'send_mails_send')){
-  $message['headers'] = array(
+    $message['headers'] = array(
       'MIME-Version' => '1.0',
       'Content-Type' => 'text/html; charset=UTF-8; format=flowed',
       'Content-Transfer-Encoding' => '8Bit',

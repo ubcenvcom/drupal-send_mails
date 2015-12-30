@@ -1,6 +1,4 @@
-name = Send Mails
-description = Simple Module to send mails to users
+name = "Send Mails"
+description = "Simple Module to send mails to users"
 core = 7.x
-version = 7.x-1.1
-project = send_mails
-datestamp = 1443099815
+package = "Send Mails"
