@@ -9,19 +9,16 @@
  * Custom function to process database operations.
  */
 function send_mails_query($type, $condition) {
-  switch ($type) {
-    case 'mailid_from_role':
-      $query = db_select('users', 'u')
-                ->fields('u', array('mail'));
-      $query->condition('u.mail', '', '<>');
-      // If Authenticated user.
-      if ($condition != 2) {
-        $query->join('users_roles', 'ur', 'ur.uid = u.uid');
-        $query->condition('ur.rid', $condition);
-      }
-      $result = $query->execute()->fetchAll();
-      break;  
-    default:
+  if ($type == 'mailid_from_role') {
+    $query = db_select('users', 'u')
+              ->fields('u', array('mail'));
+    $query->condition('u.mail', '', '<>');
+    // If Authenticated user.
+    if ($condition != 2) {
+      $query->join('users_roles', 'ur', 'ur.uid = u.uid');
+      $query->condition('ur.rid', $condition);
+    }
+    $result = $query->execute()->fetchAll();
   }
   return $result;
 }
