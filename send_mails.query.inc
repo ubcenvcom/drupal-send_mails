@@ -20,6 +20,7 @@ function send_mails_query($type, $condition) {
         $query->condition('ur.rid', $condition);
       }
       $result = $query->execute()->fetchAll();
+      
       break;
     default:
   }
