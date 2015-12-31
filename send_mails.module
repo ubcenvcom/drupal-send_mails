@@ -58,22 +58,22 @@ function send_mails_block_info() {
  * Implements hook_block_view().
  */
 function send_mails_block_view($delta = '') {
-  module_load_include('inc', 'send_mails', 'send_mails.form'); 
-  $block = array();  
+  module_load_include('inc', 'send_mails', 'send_mails.form');
+  $block = array();
   switch ($delta) {
     case 'send_mails':
       $block['subject'] = '';
       $block['content'] = drupal_get_form('send_mails_form');
       break;
   }
- return $block;
+  return $block;
 }
 
 /**
  * Implements hook_mail_alter().
  */
 function send_mails_mail_alter(&$message) {
-  if(($message['module'] == 'send_mails') && ($message['key'] = 'send_mails_send')){
+  if (($message['module'] == 'send_mails') && ($message['key'] = 'send_mails_send')) {
     $message['headers'] = array(
       'MIME-Version' => '1.0',
       'Content-Type' => 'text/html; charset=UTF-8; format=flowed',
