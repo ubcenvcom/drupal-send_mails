@@ -129,20 +129,18 @@ function send_mails_form_submit(&$form, &$form_state) {
   $report = $form_state['values']['body']['value'];
   $send = FALSE;
   $key = 'send_mails_send';
-  $email = explode(',', $form_state['values']['to_id']);
-  foreach ($email as $mails) {
-    $message = drupal_mail($module, $key, trim($mails), $language, $params, $from, $send);
-    $message['subject'] = $form_state['values']['subject'];
-    $message['body'] = array($report);
-    $message['params']['attachments'][] = array(
-      'filepath' => $file->uri,
-      'filename' => $file->filename,
-      'filemime' => $file->filemime,
-      'list' => TRUE,
-    );
-    $system = drupal_mail_system($module, $key);
-    $message = $system->format($message);
-    $message['result'] = $system->mail($message);
-  }
+  $email = $form_state['values']['to_id'];
+  $message = drupal_mail($module, $key, $email, $language, $params, $from, $send);
+  $message['subject'] = $form_state['values']['subject'];
+  $message['body'] = array($report);
+  $message['params']['attachments'][] = array(
+    'filepath' => $file->uri,
+    'filename' => $file->filename,
+    'filemime' => $file->filemime,
+    'list' => TRUE,
+  );
+  $system = drupal_mail_system($module, $key);
+  $message = $system->format($message);
+  $message['result'] = $system->mail($message);
   drupal_set_message(t('Your mail sent successfully!'));
 }
