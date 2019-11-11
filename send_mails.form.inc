@@ -18,7 +18,25 @@ function send_mails_form() {
       '#type' => 'fieldset',
       '#title' => t('Advanced Send option'),
       '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
+      '#collapsed' => FALSE,
+    );
+    $form['advanced_send_option']['from_name'] = array(
+      '#type' => 'textfield',
+      '#size' => 60,
+      '#maxlength' => 255,
+      '#required' => TRUE,
+      '#title' => t('Mail Sender name'),
+      '#default_value' => variable_get('site_name', ''),
+      '#description' => t("Enter the sender name for the mail"),
+    );
+    $form['advanced_send_option']['from_id'] = array(
+      '#type' => 'textfield',
+      '#size' => 60,
+      '#maxlength' => 255,
+      '#required' => TRUE,
+      '#title' => t('Mail Sender address'),
+      '#default_value' => variable_get('site_mail', ''),
+      '#description' => t("Enter the From for the mail"),
     );
     $form['advanced_send_option']['role_based'] = array(
       '#type' => 'checkbox',
@@ -108,6 +126,12 @@ function send_mails_form_validate(&$form, &$form_state) {
       form_set_error('to_id', t('Invalid "To Address" please enter valid e-mail ids'));
     }
   }
+  if (user_access('advanced_send_mails')) {
+    $from_id = trim($form_state['values']['from_id']);
+    if (!filter_var($from_id, FILTER_VALIDATE_EMAIL)) {
+      form_set_error('from_id', t('Invalid "From Address" please enter valid e-mail'));
+    }
+  }
 }
 
 /**
@@ -116,11 +140,16 @@ function send_mails_form_validate(&$form, &$form_state) {
 function send_mails_form_submit(&$form, &$form_state) {
   global $user;
   // From Address from user login.
-  if ($user->uid) {
-    $from = $user->mail;
-  }
-  else {
-    $from = variable_get('site_mail', '');
+  if (user_access('advanced_send_mails')) {
+    $from_id = $form_state['values']['from_id'];
+    $from_name = $form_state['values']['from_name'];
+    $from = empty($from_name) ? $from_id : sprintf("%s <%s>", $from_name, $from_id);
+  } else {
+    if ($user->uid) {
+      $from = $user->mail;
+    } else {
+      $from = variable_get('site_mail', '');
+    }
   }
   $module = 'send_mails';
   $language = language_default();
@@ -133,12 +162,14 @@ function send_mails_form_submit(&$form, &$form_state) {
   $message = drupal_mail($module, $key, $email, $language, $params, $from, $send);
   $message['subject'] = $form_state['values']['subject'];
   $message['body'] = array($report);
-  $message['params']['attachments'][] = array(
-    'filepath' => $file->uri,
-    'filename' => $file->filename,
-    'filemime' => $file->filemime,
-    'list' => TRUE,
-  );
+  if (isset($file) && is_object($file)) {
+    $message['params']['attachments'][] = array(
+      'filepath' => $file->uri,
+      'filename' => $file->filename,
+      'filemime' => $file->filemime,
+      'list' => TRUE,
+    );
+  }
   $system = drupal_mail_system($module, $key);
   $message = $system->format($message);
   $message['result'] = $system->mail($message);
