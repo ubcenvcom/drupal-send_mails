@@ -38,6 +38,10 @@ function send_mails_form() {
       '#default_value' => variable_get('site_mail', ''),
       '#description' => t("Enter the From for the mail"),
     );
+    $form['advanced_send_option']['use_bcc'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Bcc recievers'),
+    );
     $form['advanced_send_option']['role_based'] = array(
       '#type' => 'checkbox',
       '#title' => t('Role based recievers'),
@@ -66,6 +70,20 @@ function send_mails_form() {
       ),
       'required' => array(
         ':input[name="role_based"]' => array('checked' => FALSE),
+      ),
+    ),
+  );
+  $form['bcc_ids'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Bcc'),
+    '#required' => TRUE,
+    '#rows' => 8,
+    '#cols' => 60,
+    '#description' => t("Enter one address per line"),
+    '#attributes' => array('class' => array('text-full')),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="use_bcc"]' => array('checked' => TRUE),
       ),
     ),
   );
@@ -121,9 +139,20 @@ function send_mails_form_validate(&$form, &$form_state) {
     $form_state['values']['to_id'] = implode(",", $mailid_array);
   }
   $email = explode(',', $form_state['values']['to_id']);
-  foreach ($email as $value) {
-    if (!filter_var(trim($value), FILTER_VALIDATE_EMAIL)) {
-      form_set_error('to_id', t('Invalid "To Address" please enter valid e-mail ids'));
+  if (!$form_state['values']['use_bcc'] && count($email)>0) {
+    foreach ($email as $value) {
+      if (!filter_var(trim($value), FILTER_VALIDATE_EMAIL)) {
+        form_set_error('to_id', t('Invalid "To Address" please enter valid e-mail ids'));
+      }
+     }
+  }
+  if ($form_state['values']['use_bcc']) {
+    $bemail = explode("\n", trim($form_state['values']['bcc_ids']));
+    foreach ($bemail as $value) {
+      if (!filter_var(trim($value), FILTER_VALIDATE_EMAIL)) {
+        form_set_error('bcc_ids', t('Invalid "Bcc Address" please enter valid e-mail ids'));
+        drupal_set_message($value, 'error');
+      }
     }
   }
   if (user_access('advanced_send_mails')) {
@@ -144,12 +173,16 @@ function send_mails_form_submit(&$form, &$form_state) {
     $from_id = $form_state['values']['from_id'];
     $from_name = $form_state['values']['from_name'];
     $from = empty($from_name) ? $from_id : sprintf("%s <%s>", $from_name, $from_id);
+
+    // Bcc
+    $use_bcc = $form_state['values']['use_bcc'];
   } else {
     if ($user->uid) {
       $from = $user->mail;
     } else {
       $from = variable_get('site_mail', '');
     }
+    $use_bcc = false;
   }
   $module = 'send_mails';
   $language = language_default();
@@ -159,9 +192,28 @@ function send_mails_form_submit(&$form, &$form_state) {
   $send = FALSE;
   $key = 'send_mails_send';
   $email = $form_state['values']['to_id'];
+
   $message = drupal_mail($module, $key, $email, $language, $params, $from, $send);
   $message['subject'] = $form_state['values']['subject'];
   $message['body'] = array($report);
+
+  if ($use_bcc) {
+    $bccs = array();
+    $bemail = explode("\n", $form_state['values']['bcc_ids']);
+    foreach ($bemail as $value) {
+      $bcc=trim($value);
+      if (!filter_var($bcc, FILTER_VALIDATE_EMAIL)) {
+        drupal_set_message(t('An error occurred and processing did not complete.'), 'error');
+        drupal_set_message(filter_xss($value), 'error');
+        $form_state['rebuild'] = TRUE;
+        $form_state['error'] = TRUE;
+        return;
+      }
+      $bccs[]=$bcc;
+    }
+    $message['headers']['Bcc']=implode(",", $bccs);
+  }
+
   if (isset($file) && is_object($file)) {
     $message['params']['attachments'][] = array(
       'filepath' => $file->uri,
@@ -170,8 +222,12 @@ function send_mails_form_submit(&$form, &$form_state) {
       'list' => TRUE,
     );
   }
+
   $system = drupal_mail_system($module, $key);
   $message = $system->format($message);
   $message['result'] = $system->mail($message);
-  drupal_set_message(t('Your mail sent successfully!'));
+  if ($message['result'])
+    drupal_set_message(t('Your mail was sent successfully!'));
+  else
+    drupal_set_message(t('Unable to send e-mail. Contact the site administrator if the problem persists.'), 'error');
 }
